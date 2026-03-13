@@ -30,6 +30,18 @@ dt              varchar 数据起始日期：2024-01-01
 */
 with
 args as (select '2024-01-01' as dt)
+select map_id,ctype
+,sum(game_cnt)                                  as game_cnt
+,count(distinct uin)                            as game_user
+,sum(game_dur)                                  as game_dur
+,sum(frndgame_cnt)                              as frndgame_cnt
+,count(distinct if(frndgame_cnt>0,uin,null))    as frndgame_user
+,sum(frndgame_dur)                              as frndgame_dur
+,(select dt from args) as dt
+from user_map_game_stats
+;
+
+
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day

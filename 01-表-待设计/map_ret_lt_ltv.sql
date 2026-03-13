@@ -40,6 +40,167 @@ dt              varchar 数据起始日期：2024-01-01
 -- *全部用户
 with
 args as (select '2025-12-20' as dt)
+,map_user_data0 as (
+    select map_id
+    from map_game_stats
+    where dt=(select dt from args)
+    and game_user>=100
+)
+,map_user_data as (
+    select map_id,ctype,uin
+    from user_map_game_stats
+    where dt=(select dt from args)
+    and map_id in (
+        select map_id
+        from map_game_stats
+        where dt=(select dt from args)
+        and game_user>=100
+    )
+)
+,game_data as (
+    select distinct dt,map_id,uin
+    from user_map_game_stats
+    where dt between (select dt from args)
+                 and (select cast(date(dt)+interval'29'day as varchar) from args)
+    and (map_id,uin) in (select map_id,uin from map_user_data)
+)
+,minicoin_data as (
+    select dt,map_id
+    ,sum(minicoin) as minicoin
+    from user_map_pay_stats
+    where dt between (select dt from args)
+                 and (select cast(date(dt)+interval'29'day as varchar) from args)
+    and (map_id,uin) in (select map_id,uin from map_user_data)
+    group by 1,2
+)
+,ret_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))=1,1,0))    as d2r_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))=2,1,0))    as d3r_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))=6,1,0))    as d7r_cnt
+    from game_data
+    group by 1
+)
+,lt_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=6,1,0))   as lt7_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=13,1,0))  as lt14_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=29,1,0))  as lt30_cnt
+    from game_data
+    group by 1
+)
+,ltv_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=6,minicoin,0))   as ltv7_minicoin
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=13,minicoin,0))  as ltv14_minicoin
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=29,minicoin,0))  as ltv30_minicoin
+    from minicoin_data
+    group by 1
+)
+select 'all' as user_type,t1.map_id,t1.ctype
+,game_user
+,try(d2r_cnt*1.0000/game_user)      as d2r
+,try(d3r_cnt*1.0000/game_user)      as d3r
+,try(d7r_cnt*1.0000/game_user)      as d7r
+,try(lt7_cnt*1.0000/game_user)      as lt7
+,try(lt14_cnt*1.0000/game_user)     as lt14
+,try(lt30_cnt*1.0000/game_user)     as lt30
+,try(ltv7_minicoin*1.00/game_user)  as ltv7_minicoin
+,try(ltv14_minicoin*1.00/game_user) as ltv14_minicoin
+,try(ltv30_minicoin*1.00/game_user) as ltv30_minicoin
+,(select dt from args) as dt
+from (select map_id,ctype,count(*) as game_user from map_user_data group by 1) t1
+left join ret_data t2  on t1.map_id=t2.map_id
+left join lt_data  t3  on t1.map_id=t3.map_id
+left join ltv_data t4  on t1.map_id=t4.map_id
+;
+
+-- *30日新用户
+with
+args as (select '2025-12-20' as dt)
+,map_user_data0 as (
+    select map_id,ctype,uin
+    from user_map_game_stats
+    where dt between (select cast(date(dt)-interval'30'day as varchar) from args)
+    			 and (select dt from args)
+    group by 1,2,3
+    having min(dt)=(select dt from args)
+)
+,map_user_data as (
+    select map_id,uin
+    from map_user_data0
+    where map_id in (
+		select map_id
+		from map_user_data0
+		group by 1
+		having count(*)>=100
+	)
+)
+,game_data as (
+    select distinct dt,map_id,uin
+    from user_map_game_stats
+    where dt between (select dt from args)
+                 and (select cast(date(dt)+interval'29'day as varchar) from args)
+    and (map_id,uin) in (select map_id,uin from map_user_data)
+)
+,minicoin_data as (
+    select dt,map_id
+    ,sum(minicoin) as minicoin
+    from user_map_pay_stats
+    where dt between (select dt from args)
+                 and (select cast(date(dt)+interval'29'day as varchar) from args)
+    and (map_id,uin) in (select map_id,uin from map_user_data)
+    group by 1,2
+)
+,ret_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))=1,1,0))    as d2r_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))=2,1,0))    as d3r_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))=6,1,0))    as d7r_cnt
+    from game_data
+    group by 1
+)
+,lt_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=6,1,0))   as lt7_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=13,1,0))  as lt14_cnt
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=29,1,0))  as lt30_cnt
+    from game_data
+    group by 1
+)
+,ltv_data as (
+    select map_id
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=6,minicoin,0))   as ltv7_minicoin
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=13,minicoin,0))  as ltv14_minicoin
+    ,sum(if(day(date(dt)-(select date(dt) from args))<=29,minicoin,0))  as ltv30_minicoin
+    from minicoin_data
+    group by 1
+)
+select '30日新用户' as user_type,t1.map_id,t1.ctype
+,game_user
+,try(d2r_cnt*1.0000/game_user)      as d2r
+,try(d3r_cnt*1.0000/game_user)      as d3r
+,try(d7r_cnt*1.0000/game_user)      as d7r
+,try(lt7_cnt*1.0000/game_user)      as lt7
+,try(lt14_cnt*1.0000/game_user)     as lt14
+,try(lt30_cnt*1.0000/game_user)     as lt30
+,try(ltv7_minicoin*1.00/game_user)  as ltv7_minicoin
+,try(ltv14_minicoin*1.00/game_user) as ltv14_minicoin
+,try(ltv30_minicoin*1.00/game_user) as ltv30_minicoin
+,(select dt from args) as dt
+from (select map_id,ctype,count(*) as game_user from map_user_data group by 1) t1
+left join ret_data t2  on t1.map_id=t2.map_id
+left join lt_data  t3  on t1.map_id=t3.map_id
+left join ltv_data t4  on t1.map_id=t4.map_id
+;
+
+
+
+
+-- 旧的
+-- *全部用户
+with
+args as (select '2025-12-20' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -141,7 +302,7 @@ left join lt_data  t4 on t1.map_id=t4.map_id
 left join ltv_data t5 on t1.map_id=t5.map_id
 ;
 
--- 30日新用户
+-- *30日新用户
 with
 args as (select '2025-12-20' as dt)
 ,map_data as (
@@ -242,9 +403,3 @@ left join lt_data  t4 on t1.map_id=t4.map_id
 left join ltv_data t5 on t1.map_id=t5.map_id
 ;
 
--- 测试
-select *
-from mnv_temp_cn.ads_map_newuser_lt_ltv_s_d
-where dt='2025-12-20'
-and map_id=''
-;
