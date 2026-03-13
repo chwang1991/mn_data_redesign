@@ -1,6 +1,6 @@
 /*
 # 表名
-dws_map_ret_lt_ltv_s_d
+map_ret_lt_ltv
 
 # 数据起始日期
 2024-01-01
@@ -9,9 +9,9 @@ dws_map_ret_lt_ltv_s_d
 D-2/3/7/14/30
 
 # 备注
+- 仅包含游戏人数>=100的地图（人数太少时统计指标失真）
 - 每日的数据需要多次更新
 - 全部用户和30日新用户分两次更新
-- 仅包含游戏人数>=100的地图（人数太少时统计指标失真）
 
 # 依赖
 hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -37,7 +37,7 @@ dt              varchar 数据起始日期：2024-01-01
 */
 
 
--- 全部用户
+-- *全部用户
 with
 args as (select '2025-12-20' as dt)
 ,map_data as (
@@ -240,4 +240,11 @@ inner join map_data t2 on t1.map_id=t2.map_id
 left join ret_data t3 on t1.map_id=t3.map_id
 left join lt_data  t4 on t1.map_id=t4.map_id
 left join ltv_data t5 on t1.map_id=t5.map_id
+;
+
+-- 测试
+select *
+from mnv_temp_cn.ads_map_newuser_lt_ltv_s_d
+where dt='2025-12-20'
+and map_id=''
 ;

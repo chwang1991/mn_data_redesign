@@ -1,6 +1,6 @@
 /*
 # 表名
-dim_channel
+dim_cn.dim_channel_a_d_cn
 
 # 备注
 来源：hive.mnv_ads_config_cn.miniworld_channel

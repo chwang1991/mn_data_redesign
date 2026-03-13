@@ -1,6 +1,5 @@
 /*
 # 表名
-dim_special_contentpack
 
 # 备注
 

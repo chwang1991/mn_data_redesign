@@ -1,6 +1,6 @@
 /*
 # 表名
-user_map_game_stats
+dws_cn.dws_client_user_map_game_stats_i_d
 
 # 数据起始日期
 2024-01-01

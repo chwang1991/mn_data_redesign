@@ -1,6 +1,6 @@
 /*
 # 表名
-dim_ad_slot
+
 
 # 备注
 来源：https://mini1.feishu.cn/sheets/shtcnDA3AIyw80TtGESoGMUKIvb?sheet=maa2E4

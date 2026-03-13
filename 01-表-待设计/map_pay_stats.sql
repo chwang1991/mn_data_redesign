@@ -32,86 +32,21 @@ minibean                bigint  迷你豆消费数量
 minibean_payer          bigint  迷你豆消费人数
 minipoint               bigint  迷你点消费数量
 minipoint_payer         bigint  迷你点消费人数
-minicoin_valid          bigint  迷你币(真)消费数量
-minicoin_valid_payer    bigint  迷你币(真)消费人数
-minicoin_invalid        bigint  迷你币(假)消费数量
-minicoin_invalid_payer  bigint  迷你币(假)消费人数
-minibean_valid          bigint  迷你豆(真)消费数量
-minibean_valid_payer    bigint  迷你豆(真)消费人数
-minibean_invalid        bigint  迷你豆(假)消费数量
-minibean_invalid_payer  bigint  迷你豆(假)消费人数
 dt                      varchar 数据起始日期：2024-01-01
 
 */
 
 with
 args as (select '2026-01-01' as dt)
-,map_data as (
-    select wid as map_id,ctype
-    from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
-    where dt=(select dt from args)
-)
-,currency_data1 as (
-    select map_id
-    ,sum(if(event_code='coin_pay' ,pay_cnt ,0)) as minicoin
-    ,sum(if(event_code='coin_pay' ,user_cnt,0)) as minicoin_payer
-    ,sum(if(event_code='bean_pay' ,pay_cnt ,0)) as minibean
-    ,sum(if(event_code='bean_pay' ,user_cnt,0)) as minibean_payer
-    ,sum(if(event_code='point_pay',pay_cnt ,0)) as minipoint
-    ,sum(if(event_code='point_pay',user_cnt,0)) as minipoint_payer
-    from (
-        select map_id,event_code
-        ,sum(pay_cnt) as pay_cnt
-        ,count(distinct uin) as user_cnt
-        from hive.mnv_ads_ugc_cn.map_consumption_details_day
-        where dt=(select dt from args)
-        group by 1,2
-    )
-    group by 1
-)
-,currency_data2 as (
-    select map_id
-    ,sum(if(event_code='coin_pay' and valid='1',pay_cnt ,0)) as minicoin_valid
-    ,sum(if(event_code='coin_pay' and valid='1',user_cnt,0)) as minicoin_valid_payer
-    ,sum(if(event_code='coin_pay' and valid='0',pay_cnt ,0)) as minicoin_invalid
-    ,sum(if(event_code='coin_pay' and valid='0',user_cnt,0)) as minicoin_invalid_payer
-    ,sum(if(event_code='bean_pay' and valid='1',pay_cnt ,0)) as minibean_valid
-    ,sum(if(event_code='bean_pay' and valid='1',user_cnt,0)) as minibean_valid_payer
-    ,sum(if(event_code='bean_pay' and valid='0',pay_cnt ,0)) as minibean_invalid
-    ,sum(if(event_code='bean_pay' and valid='0',user_cnt,0)) as minibean_invalid_payer
-    from (
-        select map_id,event_code,valid
-        ,sum(pay_cnt) as pay_cnt
-        ,count(distinct uin) as user_cnt
-        from hive.mnv_ads_ugc_cn.map_consumption_details_day
-        where dt=(select dt from args)
-        and event_code in ('coin_pay','bean_pay')
-        group by 1,2,3
-    )
-    group by 1
-)
-,currency_data as (
-    select t1.map_id
-    ,minicoin,minicoin_payer
-    ,minibean,minibean_payer
-    ,minipoint,minipoint_payer
-    ,minicoin_valid,minicoin_valid_payer
-    ,minicoin_invalid,minicoin_invalid_payer
-    ,minibean_valid,minibean_valid_payer
-    ,minibean_invalid,minibean_invalid_payer
-    ,(select dt from args) as dt
-    from currency_data1 t1
-    left join currency_data2 t2 on t1.map_id=t2.map_id
-)
-select t1.map_id,t2.ctype
-,minicoin,minicoin_payer
-,minibean,minibean_payer
-,minipoint,minipoint_payer
-,minicoin_valid,minicoin_valid_payer
-,minicoin_invalid,minicoin_invalid_payer
-,minibean_valid,minibean_valid_payer
-,minibean_invalid,minibean_invalid_payer
+select map_id,ctype
+,sum(minicoin)                   as minicoin
+,count(if(minicoin>0,uin,null))  as minicoin_payer
+,sum(minibean)                   as minibean
+,count(if(minibean>0,uin,null))  as minibean_payer
+,sum(minipoint)                  as minipoint
+,count(if(minipoint>0,uin,null)) as minipoint_payer
 ,(select dt from args) as dt
-from currency_data t1
-inner join map_data t2 on t1.map_id=t2.map_id
+from user_map_pay_stats
+where dt=(select dt from args)
+group by 1,2
 ;

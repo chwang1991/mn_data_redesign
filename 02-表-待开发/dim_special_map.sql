@@ -1,9 +1,7 @@
 /*
 # 表名
-dim_special_map
 
 # 备注
-
 
 # 结果字段（字段名-类型-comment）
 map_id      varchar 地图ID
