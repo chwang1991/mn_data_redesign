@@ -1,6 +1,6 @@
 /*
 # 表名
-dws_map_distribution_stats_s_d
+
 
 # 数据起始日期
 2026-01-01
@@ -22,14 +22,17 @@ hive.mn_external_query.r_sdk_70000_game_start
 # 结果字段（字段名-类型-comment）
 dt          varchar 数据起始日期：2024-01-01
 map_id      varchar 地图ID
-expo_place  varchar 曝光位置：联机大厅/推荐、联机大厅/新热榜、联机大厅/精选、联机大厅/分类、联机大厅/studio专区、沙盒工坊、沙盒联机、搜索、排行榜
+ctype       varchar 地图类型
+place       varchar 位置：联机大厅/推荐、联机大厅/新热榜、联机大厅/精选、联机大厅/分类、联机大厅/studio专区、沙盒工坊、沙盒联机、搜索、排行榜
 expo_cnt    bigint  曝光次数
 game_cnt    bigint  游戏次数
+game_user   bigint  游戏人数
+game_dur    bigint  游戏时长（秒）
 ctr         double  点击率（游戏次数/曝光次数）
 
 */
 with
-args as (select '2025-12-20' as dt)
+args as (select '2026-02-17' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -43,7 +46,7 @@ args as (select '2025-12-20' as dt)
 		when regexp_like(card_id,'_REC|OFFICIAL_MAP')   then '联机大厅/精选'
 		when regexp_like(card_id,'_CONTENT')            then '联机大厅/分类'
         when regexp_like(card_id,'STUDIO_CONTAINER')    then '联机大厅/studio专区'
-	end as expo_place
+	end as place
     ,count(1) as expo_cnt
     from (
 	    select cid,card_id
@@ -58,7 +61,7 @@ args as (select '2025-12-20' as dt)
     group by 1,2
 )
 ,expo_data_workshop as (
-    select map_id,'沙盒工坊' as expo_place,count(1) as expo_cnt
+    select map_id,'沙盒工坊' as place,count(1) as expo_cnt
     from (
 	    select cid
 	    from hive.mnv_ads_ugc_cn.r_sdk_70000_scene_3
@@ -71,7 +74,7 @@ args as (select '2025-12-20' as dt)
     group by 1
 )
 ,expo_data_sandboxroom as (
-    select map_id,'沙盒联机' as expo_place,count(1) as expo_cnt
+    select map_id,'沙盒联机' as place,count(1) as expo_cnt
     from (
 	    select cid
 	    from hive.mnv_ads_pbg_cn.r_sdk_70000_scene_1007
@@ -85,7 +88,7 @@ args as (select '2025-12-20' as dt)
     group by 1
 )
 ,expo_data_search as (
-	select cid as map_id,'搜索' as expo_place,count(1) as expo_cnt
+	select cid as map_id,'搜索' as place,count(1) as expo_cnt
     from hive.mnv_ads_product_cn.r_sdk_70000_scene_54
     where dt=(select dt from args)
     and regexp_like(comp_id,'Card')
@@ -93,7 +96,7 @@ args as (select '2025-12-20' as dt)
     group by 1
 )
 ,expo_data_rankingboard as (
-    select cid as map_id,'排行榜' as expo_place,count(1) as expo_cnt
+    select cid as map_id,'排行榜' as place,count(1) as expo_cnt
     from (
 	    select cid
 	    from hive.mnv_ads_analyst_cn.r_sdk_70000_scene_68
@@ -118,7 +121,7 @@ args as (select '2025-12-20' as dt)
         union all
         select * from expo_data_rankingboard
     )
-    where expo_cnt>=1000
+    where map_id in (select map_id from map_data)
 )
 ,game_data as (
     select cid as map_id
@@ -140,8 +143,10 @@ args as (select '2025-12-20' as dt)
         when regexp_like(trace_id,'workshop|MAP')                   or scene_id in ('3')            then '沙盒工坊'
         when regexp_like(trace_id,'sandbox')                        or scene_id in ('1007')         then '沙盒联机'
         else '其他'
-    end as startfrom
+    end as place
     ,count(*) as game_cnt
+    ,count(distinct uin) as game_user
+    ,sum(game_period_seconds) as game_dur
     from hive.mn_external_query.r_sdk_70000_game_start
     where dt=(select dt from args)
     and (
@@ -152,14 +157,30 @@ args as (select '2025-12-20' as dt)
         and (regexp_like(coalesce(cid,''),'^\d{10,15}$')) --地图ID有效
         and (floor((cast(cid as bigint)-cast(cid as bigint)%pow(2,32))/pow(2,32))<>23282) --排除家园
     )
+    and cid in (select map_id from map_data)
     group by 1,2
 )
-select t1.map_id,t2.ctype,t1.expo_place
-,expo_cnt,game_cnt
-,game_cnt*1.000000/expo_cnt as ctr
-,(select dt from args) as dt
-from expo_data t1
-inner join map_data t2 on t1.map_id=t2.map_id
-left join game_data t3 on t1.map_id=t3.map_id and t1.expo_place=t3.startfrom
+select u1.map_id,u2.ctype
+,place
+,expo_cnt,game_cnt,game_user,game_dur
+,try(game_cnt*1.0000/expo_cnt) as ctr
+from (
+    select coalesce(t1.map_id,t2.map_id) as map_id
+    ,coalesce(t1.place,t2.place) as place
+    ,coalesce(expo_cnt,0) as expo_cnt
+    ,coalesce(game_cnt,0) as game_cnt
+    ,coalesce(game_user,0) as game_user
+    ,coalesce(game_dur,0) as game_dur
+    from expo_data t1
+    full outer join game_data t2 on t1.map_id=t2.map_id and t1.place=t2.place
+) u1
+inner join map_data u2 on u1.map_id=u2.map_id
 ;
+
+
+
+
+
+
+
 
