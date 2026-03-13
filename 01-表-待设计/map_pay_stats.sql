@@ -1,6 +1,6 @@
 /*
 # 表名
-dws_map_currency_consume_stats_s_d
+map_pay_stats
 
 # 数据起始日期
 2024-01-01

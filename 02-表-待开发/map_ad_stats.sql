@@ -16,13 +16,13 @@ hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
 hive.mn_external_query.r_developer_ad_total
 
 # 结果字段（字段名-类型-comment）
-map_id          varchar 地图ID
-ctype           int     地图类型（1-存档，2-地图）
-ad_revenue      double  广告收入（元）
-ad_cnt          bigint  广告次数
-ad_user         bigint  广告人数
-ad_ecpm         double  广告eCPM（元）
-dt              varchar 数据起始日期：2024-01-01
+map_id      varchar 地图ID
+ctype       int     地图类型（1-存档，2-地图）
+ad_revenue  double  广告收入（元）
+ad_cnt      bigint  广告次数
+ad_user     bigint  广告人数
+ad_ecpm     double  广告eCPM（元）
+dt          varchar 数据起始日期：2024-01-01
 
 */
 
@@ -58,4 +58,5 @@ select t1.map_id,t2.ctype
 ,(select dt from args) as dt
 from ad_data t1
 inner join map_data t2 on t1.map_id=t2.map_id
+order by 1
 ;
