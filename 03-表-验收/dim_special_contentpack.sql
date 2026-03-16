@@ -1,5 +1,6 @@
 /*
 # 表名
+dim_cn.dim_special_contentpack_a_d
 
 # 备注
 
@@ -9,6 +10,8 @@ description varchar 说明
 update_dt   varchar 数据更新日期
 
 */
+desc dim_cn.dim_special_contentpack_a_d;
+select * from dim_cn.dim_special_contentpack_a_d limit 100;
 
 with
 args as (select '2026-03-02' as update_dt)

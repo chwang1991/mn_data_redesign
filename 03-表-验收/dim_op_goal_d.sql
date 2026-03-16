@@ -1,17 +1,18 @@
 /*
 # 表名
-
+dim_cn.dim_op_goal_a_d
 
 # 备注
-来源：???
 
 # 结果字段（字段名-类型-comment）
 dt          varchar 日期
 dau         bigint  目标DAU
 pay         bigint  目标充值收入（含直播*）
-update_dt   varchar 数据更新日期
+update_dt   varchar 数据更新日期；数据范围：2025-01-01~2026-03-31
 
 */
+desc dim_cn.dim_op_goal_a_d;
+select * from dim_cn.dim_op_goal_a_d limit 100;
 
 with
 args as (select '2026-03-02' as update_dt)

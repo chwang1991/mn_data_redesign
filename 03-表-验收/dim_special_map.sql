@@ -10,6 +10,8 @@ description varchar 说明
 update_dt   varchar 数据更新日期
 
 */
+desc dim_cn.dim_special_map_a_d;
+select * from dim_cn.dim_special_map_a_d limit 100;
 
 -- *更新数据
 with

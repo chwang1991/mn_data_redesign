@@ -37,7 +37,7 @@ dt                      varchar 数据起始日期：2024-01-01
 */
 
 with
-args as (select '2026-01-01' as dt)
+args as (select '2026-02-01' as dt)
 select map_id,ctype
 ,sum(minicoin)                   as minicoin
 ,count(if(minicoin>0,uin,null))  as minicoin_payer
@@ -46,7 +46,7 @@ select map_id,ctype
 ,sum(minipoint)                  as minipoint
 ,count(if(minipoint>0,uin,null)) as minipoint_payer
 ,(select dt from args) as dt
-from user_map_pay_stats
+from dws_cn.dws_consumption_user_map_stats_i_d
 where dt=(select dt from args)
 group by 1,2
 ;
