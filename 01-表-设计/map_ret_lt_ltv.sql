@@ -36,8 +36,6 @@ dt              varchar 数据起始日期：2024-01-01
 
 */
 
-select dt,count(*) from dws_cn.dws_consumption_user_map_stats_i_d group by 1;
-
 -- *全部用户
 with
 args as (select '2026-02-01' as dt)

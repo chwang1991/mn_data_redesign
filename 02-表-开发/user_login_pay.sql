@@ -25,16 +25,16 @@ is_d2r          int             是否Day2留存（次日），0/1
 is_d3r          int             是否Day3留存（三日），0/1
 ...
 is_d90r         int             是否Day90留存（九十日），0/1
-paym_d1         double          Day1付费
-paym_d2         double          Day2付费
+paym_d1         double          Day1付费，保留2位
+paym_d2         double          Day2付费，保留2位
 ...
-paym_d90        double          Day90付费
+paym_d90        double          Day90付费，保留2位
 dt              varchar         数据起始日期：2024-01-01
 
 */
 
 with
-args as (select '2026-01-28' as dt)
+args as (select '2026-02-01' as dt)
 ,uin as (
     select uin
     ,array_distinct(array_agg(channel_id)) as channels

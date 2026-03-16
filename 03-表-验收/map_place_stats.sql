@@ -1,6 +1,6 @@
 /*
 # 表名
-
+dws_cn.dws_client_game_map_place_stats_i_d
 
 # 数据起始日期
 2026-01-01
@@ -20,19 +20,26 @@ hive.mnv_ads_analyst_cn.r_sdk_70000_scene_68
 hive.mn_external_query.r_sdk_70000_game_start
 
 # 结果字段（字段名-类型-comment）
-dt          varchar 数据起始日期：2024-01-01
 map_id      varchar 地图ID
-ctype       varchar 地图类型
+ctype       int     地图类型
 place       varchar 位置：联机大厅/推荐、联机大厅/新热榜、联机大厅/精选、联机大厅/分类、联机大厅/studio专区、沙盒工坊、沙盒联机、搜索、排行榜
 expo_cnt    bigint  曝光次数
 game_cnt    bigint  游戏次数
 game_user   bigint  游戏人数
 game_dur    bigint  游戏时长（秒）
-ctr         double  点击率（游戏次数/曝光次数）
+ctr         double  点击率（游戏次数/曝光次数），保留6位
+dt          varchar 数据起始日期：2024-01-01
 
 */
+-- *验收
+desc dws_cn.dws_client_game_map_place_stats_i_d;
+select * from dws_cn.dws_client_game_map_place_stats_i_d
+where dt='2026-02-01'
+order by 4 desc limit 100
+;
+
 with
-args as (select '2026-02-17' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -163,7 +170,7 @@ args as (select '2026-02-17' as dt)
 select u1.map_id,u2.ctype
 ,place
 ,expo_cnt,game_cnt,game_user,game_dur
-,try(game_cnt*1.0000/expo_cnt) as ctr
+,try(game_cnt*1.000000/expo_cnt) as ctr
 from (
     select coalesce(t1.map_id,t2.map_id) as map_id
     ,coalesce(t1.place,t2.place) as place
@@ -175,6 +182,7 @@ from (
     full outer join game_data t2 on t1.map_id=t2.map_id and t1.place=t2.place
 ) u1
 inner join map_data u2 on u1.map_id=u2.map_id
+order by 4 desc limit 100
 ;
 
 
