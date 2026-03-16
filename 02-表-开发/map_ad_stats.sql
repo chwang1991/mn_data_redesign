@@ -1,5 +1,6 @@
 /*
 # 表名
+dws_cn.dws_ad_map_stats_i_d
 
 # 数据起始日期
 2024-01-01
@@ -26,7 +27,7 @@ dt          varchar 数据起始日期：2024-01-01
 */
 
 with
-args as (select '2025-12-20' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day

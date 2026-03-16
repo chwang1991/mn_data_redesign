@@ -36,30 +36,25 @@ dt              varchar 数据起始日期：2024-01-01
 
 */
 
+select dt,count(*) from dws_cn.dws_consumption_user_map_stats_i_d group by 1;
 
 -- *全部用户
 with
-args as (select '2025-12-20' as dt)
-,map_user_data0 as (
-    select map_id
-    from map_game_stats
-    where dt=(select dt from args)
-    and game_user>=100
-)
+args as (select '2026-02-01' as dt)
 ,map_user_data as (
     select map_id,ctype,uin
-    from user_map_game_stats
+    from dws_cn.dws_client_game_user_map_stats_i_d
     where dt=(select dt from args)
     and map_id in (
         select map_id
-        from map_game_stats
+        from dws_cn.dws_client_game_map_stats_i_d
         where dt=(select dt from args)
         and game_user>=100
     )
 )
 ,game_data as (
     select distinct dt,map_id,uin
-    from user_map_game_stats
+    from dws_cn.dws_client_game_user_map_stats_i_d
     where dt between (select dt from args)
                  and (select cast(date(dt)+interval'29'day as varchar) from args)
     and (map_id,uin) in (select map_id,uin from map_user_data)
@@ -67,7 +62,7 @@ args as (select '2025-12-20' as dt)
 ,minicoin_data as (
     select dt,map_id
     ,sum(minicoin) as minicoin
-    from user_map_pay_stats
+    from dws_cn.dws_consumption_user_map_stats_i_d
     where dt between (select dt from args)
                  and (select cast(date(dt)+interval'29'day as varchar) from args)
     and (map_id,uin) in (select map_id,uin from map_user_data)
@@ -109,25 +104,26 @@ select 'all' as user_type,t1.map_id,t1.ctype
 ,try(ltv14_minicoin*1.00/game_user) as ltv14_minicoin
 ,try(ltv30_minicoin*1.00/game_user) as ltv30_minicoin
 ,(select dt from args) as dt
-from (select map_id,ctype,count(*) as game_user from map_user_data group by 1) t1
+from (select map_id,ctype,count(*) as game_user from map_user_data group by 1,2) t1
 left join ret_data t2  on t1.map_id=t2.map_id
 left join lt_data  t3  on t1.map_id=t3.map_id
 left join ltv_data t4  on t1.map_id=t4.map_id
+order by 1,2,3 limit 100
 ;
 
 -- *30日新用户
 with
-args as (select '2025-12-20' as dt)
+args as (select '2026-02-01' as dt)
 ,map_user_data0 as (
     select map_id,ctype,uin
-    from user_map_game_stats
+    from dws_cn.dws_client_game_user_map_stats_i_d
     where dt between (select cast(date(dt)-interval'30'day as varchar) from args)
     			 and (select dt from args)
     group by 1,2,3
     having min(dt)=(select dt from args)
 )
 ,map_user_data as (
-    select map_id,uin
+    select map_id,ctype,uin
     from map_user_data0
     where map_id in (
 		select map_id
@@ -138,7 +134,7 @@ args as (select '2025-12-20' as dt)
 )
 ,game_data as (
     select distinct dt,map_id,uin
-    from user_map_game_stats
+    from dws_cn.dws_client_game_user_map_stats_i_d
     where dt between (select dt from args)
                  and (select cast(date(dt)+interval'29'day as varchar) from args)
     and (map_id,uin) in (select map_id,uin from map_user_data)
@@ -146,7 +142,7 @@ args as (select '2025-12-20' as dt)
 ,minicoin_data as (
     select dt,map_id
     ,sum(minicoin) as minicoin
-    from user_map_pay_stats
+    from dws_cn.dws_consumption_user_map_stats_i_d
     where dt between (select dt from args)
                  and (select cast(date(dt)+interval'29'day as varchar) from args)
     and (map_id,uin) in (select map_id,uin from map_user_data)
@@ -188,7 +184,7 @@ select '30日新用户' as user_type,t1.map_id,t1.ctype
 ,try(ltv14_minicoin*1.00/game_user) as ltv14_minicoin
 ,try(ltv30_minicoin*1.00/game_user) as ltv30_minicoin
 ,(select dt from args) as dt
-from (select map_id,ctype,count(*) as game_user from map_user_data group by 1) t1
+from (select map_id,ctype,count(*) as game_user from map_user_data group by 1,2) t1
 left join ret_data t2  on t1.map_id=t2.map_id
 left join lt_data  t3  on t1.map_id=t3.map_id
 left join ltv_data t4  on t1.map_id=t4.map_id
@@ -200,7 +196,7 @@ left join ltv_data t4  on t1.map_id=t4.map_id
 -- 旧的
 -- *全部用户
 with
-args as (select '2025-12-20' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -300,6 +296,7 @@ inner join map_data t2 on t1.map_id=t2.map_id
 left join ret_data t3 on t1.map_id=t3.map_id
 left join lt_data  t4 on t1.map_id=t4.map_id
 left join ltv_data t5 on t1.map_id=t5.map_id
+order by 1,2,3 limit 100
 ;
 
 -- *30日新用户

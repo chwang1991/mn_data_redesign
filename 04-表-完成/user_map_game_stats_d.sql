@@ -1,6 +1,6 @@
 /*
 # 表名
-dws_cn.dws_client_user_map_game_stats_i_d
+dws_cn.dws_client_game_user_map_stats_i_d
 
 # 数据起始日期
 2024-01-01
@@ -27,8 +27,17 @@ frndgame_dur    bigint  好友同玩时长（秒）
 dt              varchar 数据起始日期：2024-01-01
 
 */
+
+-- *验收
+desc dws_cn.dws_client_game_user_map_stats_i_d;
+select * from dws_cn.dws_client_game_user_map_stats_i_d
+where dt='2026-02-01'
+order by 1,2,3 limit 100
+;
+
+-- *数据
 with
-args as (select '2024-01-01' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day

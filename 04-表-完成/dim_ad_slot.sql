@@ -13,9 +13,12 @@ is_on          int     是否启用，0/1
 update_dt      varchar 数据更新日期
 
 */
+-- *验收
 desc dim_cn.dim_ad_slot_config_a_d;
-select * from dim_cn.dim_ad_slot_config_a_d limit 100;
+select * from dim_cn.dim_ad_slot_config_a_d
+limit 100;
 
+-- *数据
 with
 args as (select '2026-03-02' as update_dt)
 select ad_slot_id,ad_slot_type,ad_slot_name,is_on

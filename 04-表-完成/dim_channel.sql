@@ -13,9 +13,12 @@ is_main        int     是否重点渠道，0/1
 update_dt      varchar 数据更新日期
 
 */
+-- *验收
 desc dim_cn.dim_channel_a_d_cn;
-select * from dim_cn.dim_channel_a_d_cn limit 100;
+select * from dim_cn.dim_channel_a_d_cn
+limit 100;
 
+-- *数据
 with
 args as (select '2026-03-02' as update_dt)
 select channel_id

@@ -11,8 +11,9 @@ pay         bigint  目标充值收入（含直播*）
 update_dt   varchar 数据更新日期；数据范围：2025-01-01~2026-03-31
 
 */
+-- *验收
 desc dim_cn.dim_op_goal_a_d;
-select * from dim_cn.dim_op_goal_a_d limit 100;
+select * from dim_cn.dim_op_goal_a_d;
 
 with
 args as (select '2026-03-02' as update_dt)

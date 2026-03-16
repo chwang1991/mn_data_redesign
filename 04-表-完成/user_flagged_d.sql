@@ -20,15 +20,21 @@ hive.mn_external_query.r_sdk_70000_scene_3901
 hive.mnv_ads_pbg_cn.r_sdk_70000_scene_3902
 
 # 结果字段（字段名-类型-comment）
-dt              varchar 数据起始日期：2025-11-01
 uin             bigint  UIN
 flag            varchar 异常标记：疑似模拟请求
+dt              varchar 数据起始日期：2025-11-01
 
 */
 
+-- *验收
+desc ads_cn.ads_user_flagged_i_d;
+select * from ads_cn.ads_user_flagged_i_d where dt='2026-02-01'
+order by 1 desc limit 100;
+
+-- *数据
 -- 疑似模拟请求：仅官版（1/110）登录，有服务端登录记录，无客户端登录记录（9999，3701，3702，3901，3902）
 with
-args as (select '2026-03-08' as dt)
+args as (select '2026-02-01' as dt)
 ,data1 as (
     select uin
     from (
@@ -61,10 +67,11 @@ args as (select '2026-03-08' as dt)
     from hive.mnv_ads_pbg_cn.r_sdk_70000_scene_3902
     where dt between (select cast(date(dt)-interval'30'day as varchar) from args) and (select dt from args)
 )
-select (select dt from args) as dt
-,t1.uin
+select t1.uin
 ,'疑似模拟请求' as flag
+,(select dt from args) as dt
 from data1 t1
 left join data2 t2 on t1.uin=t2.uin
 where t2.uin is null
+order by 1 desc limit 100
 ;

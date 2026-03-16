@@ -1,5 +1,6 @@
 /*
 # 表名
+dws_cn.dws_consumption_user_map_stats_i_d
 
 # 数据起始日期
 2024-01-01
@@ -32,9 +33,15 @@ minipoint   bigint  迷你点消费数量
 dt          varchar 数据起始日期：2024-01-01
 
 */
+-- *验收
+desc dws_cn.dws_consumption_user_map_stats_i_d;
+select * from dws_cn.dws_consumption_user_map_stats_i_d
+where dt='2026-02-01'
+order by 1,2,3 limit 100
+;
 
 with
-args as (select '2026-01-01' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -98,4 +105,5 @@ select t1.uin,t1.map_id,t2.ctype
 ,(select dt from args) as dt
 from pay_data t1
 inner join map_data t2 on t1.map_id=t2.map_id
+order by 1,2,3 limit 100
 ;
