@@ -19,7 +19,7 @@ hive.mn_external_query.r_sdk_70000_game_start
 hive.mnv_ads_account_cn.acc_oplog_minicoin_details_day
 
 # 结果字段（字段名-类型-comment）
-user_type       varchar 用户类型：全部用户/30日新用户
+user_type       varchar 用户类型：all/30日新用户
 map_id          varchar 地图ID
 ctype           int     地图类型（1-存档，2-地图）
 game_user       bigint  游戏人数
@@ -90,7 +90,7 @@ args as (select '2026-02-01' as dt)
     from minicoin_data
     group by 1
 )
-select 'all' as user_type,t1.map_id,t1.ctype
+select '全部用户' as user_type,t1.map_id,t1.ctype
 ,game_user
 ,try(d2r_cnt*1.0000/game_user)      as d2r
 ,try(d3r_cnt*1.0000/game_user)      as d3r
@@ -106,28 +106,34 @@ from (select map_id,ctype,count(*) as game_user from map_user_data group by 1,2)
 left join ret_data t2  on t1.map_id=t2.map_id
 left join lt_data  t3  on t1.map_id=t3.map_id
 left join ltv_data t4  on t1.map_id=t4.map_id
-order by 1,2,3 limit 100
+
+order by 4 desc limit 100
 ;
 
 -- *30日新用户
 with
 args as (select '2026-02-01' as dt)
 ,map_user_data0 as (
-    select map_id,ctype,uin
+    select map_id,uin
     from dws_cn.dws_client_game_user_map_stats_i_d
     where dt between (select cast(date(dt)-interval'30'day as varchar) from args)
     			 and (select dt from args)
-    group by 1,2,3
+    group by 1,2
     having min(dt)=(select dt from args)
 )
 ,map_user_data as (
     select map_id,ctype,uin
-    from map_user_data0
-    where map_id in (
-		select map_id
+    from dws_cn.dws_client_game_user_map_stats_i_d
+    where dt=(select dt from args)
+    and (map_id,uin) in (
+		select map_id,uin
 		from map_user_data0
-		group by 1
-		having count(*)>=100
+		where map_id in (
+		    select map_id
+            from map_user_data0
+            group by 1
+		    having count(*)>=100
+		)
 	)
 )
 ,game_data as (
@@ -191,7 +197,12 @@ left join ltv_data t4  on t1.map_id=t4.map_id
 
 
 
--- 旧的
+
+
+
+
+
+-- 过去旧的
 -- *全部用户
 with
 args as (select '2026-02-01' as dt)
@@ -291,15 +302,14 @@ select 'all' as user_type,t1.map_id,t2.ctype
 ,(select dt from args) as dt
 from (select map_id,count(*) as game_user from map_user_data group by 1) t1
 inner join map_data t2 on t1.map_id=t2.map_id
-left join ret_data t3 on t1.map_id=t3.map_id
-left join lt_data  t4 on t1.map_id=t4.map_id
-left join ltv_data t5 on t1.map_id=t5.map_id
-order by 1,2,3 limit 100
+left join ret_data  t3 on t1.map_id=t3.map_id
+left join lt_data   t4 on t1.map_id=t4.map_id
+left join ltv_data  t5 on t1.map_id=t5.map_id
 ;
 
 -- *30日新用户
 with
-args as (select '2025-12-20' as dt)
+args as (select '2026-02-01' as dt)
 ,map_data as (
     select wid as map_id,ctype
     from hive.mnv_ads_ugc_cn.map_sign_algorithm_stats_day
@@ -396,5 +406,7 @@ inner join map_data t2 on t1.map_id=t2.map_id
 left join ret_data t3 on t1.map_id=t3.map_id
 left join lt_data  t4 on t1.map_id=t4.map_id
 left join ltv_data t5 on t1.map_id=t5.map_id
+
+order by 4 desc limit 100
 ;
 

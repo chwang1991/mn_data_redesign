@@ -65,5 +65,4 @@ select t1.map_id,t2.ctype
 ,(select dt from args) as dt
 from ad_data t1
 inner join map_data t2 on t1.map_id=t2.map_id
-order by 1,2 limit 100
 ;

@@ -28,6 +28,14 @@ frndgame_dur    bigint  好友同玩时长（秒）
 dt              varchar 数据起始日期：2024-01-01
 
 */
+-- *验收
+desc dws_cn.dws_client_game_map_stats_i_d;
+select * from dws_cn.dws_client_game_map_stats_i_d
+where dt='2026-02-01'
+order by 3 desc limit 100
+;
+
+-- *数据
 with
 args as (select '2026-02-01' as dt)
 select map_id,ctype
@@ -41,4 +49,5 @@ select map_id,ctype
 from dws_cn.dws_client_game_user_map_stats_i_d
 where dt=(select dt from args)
 group by 1,2
+order by 3 desc
 ;
