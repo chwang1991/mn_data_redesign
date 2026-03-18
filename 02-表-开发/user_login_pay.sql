@@ -21,16 +21,9 @@ channel_list    array(varchar)  登录渠道列表
 is_new          int             是否新增（注册+实名）
 is_d7rtn        int             是否7日回流，0/1
 is_d30rtn       int             是否30日回流，0/1
-is_d2r          int             是否Day2留存（次日），0/1
-is_d3r          int             是否Day3留存（三日），0/1
-...
-is_d90r         int             是否Day90留存（九十日），0/1
-paym_d1         double          Day1付费，保留2位
-paym_d2         double          Day2付费，保留2位
-...
-paym_d90        double          Day90付费，保留2位
+is_login_dayx   array(int)      Day1-Day90是否登录，0/1
+paym_dayx       array(double)   Day1-Day90付费，保留2位
 dt              varchar         数据起始日期：2024-01-01
-
 */
 
 with

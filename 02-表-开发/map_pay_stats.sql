@@ -36,6 +36,13 @@ dt                      varchar 数据起始日期：2024-01-01
 
 */
 
+-- *验收
+desc dws_cn.dws_consumption_map_stats_i_d;
+select * from dws_cn.dws_consumption_map_stats_i_d
+where dt='2026-02-01'
+order by 3 desc limit 100
+;
+
 with
 args as (select '2026-02-01' as dt)
 select map_id,ctype

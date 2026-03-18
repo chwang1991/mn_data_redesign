@@ -1,57 +1,24 @@
-/*
-# 表名
-map_ret_lt_ltv
-
-# 数据起始日期
-2024-01-01
-
-# 更新频率
-D-2/3/7/14/30
-
-# 备注
-- 仅包含游戏人数>=100的地图（人数太少时统计指标失真）
-- 每日的数据需要多次更新
-- 全部用户和30日新用户分两次更新
-
-# 依赖
-
-# 结果字段（字段名-类型-comment）
-user_type       varchar 用户类型：全部用户/30日新用户
-map_id          varchar 地图ID
-ctype           int     地图类型（1-存档，2-地图）
-game_user       bigint  游戏人数
-d2r             double  次日复玩率
-d3r             double  3日复玩率
-d7r             double  7日复玩率
-lt7             double  LT7
-lt14            double  LT14
-lt30            double  LT30
-ltv7_minicoin   double  LTV7（迷你币）
-ltv14_minicoin  double  LTV14（迷你币）
-ltv30_minicoin  double  LTV30（迷你币）
-dt              varchar 数据起始日期：2024-01-01
-
-*/
-
--- and map_id not in (select map_id from dim_cn.dim_special_map_a_d where map_tag='ogc')
-
--- *验收
-
--- *数据
--- *是否剔除异常账号
--- *是否排除OGC
 with
 args as (select
-     '2026-02-01' as sdt
-    ,'2026-02-28' as edt
-    ,1 as is_remove_flagged_user
-    ,0 as is_remove_ogc_map
+--      '{sdt}' as sdt
+--     ,'{edt}' as edt
+--     ,'week' as stat_period
+--     ,'{is_remove_flagged_user}' as is_remove_flagged_user
+--     ,'{is_remove_ogc_map}' as is_remove_ogc_map
+     '2026-03-01' as sdt
+    ,'2026-03-03' as edt
+    ,'week' as period --统计周期
+    ,'1' as is_remove_flagged_user
+    ,'0' as is_remove_ogc_map
 )
+select date_trunc((select period from args),date('2026-03-18'))
+
+
 ,removed_map as (
     select map_id
     from dim_cn.dim_special_map_a_d
     where (map_tag='adv')
-    or (map_tag='ogc' and 1=(select is_remove_ogc_map from args))
+    or (map_tag='ogc' and '1'=(select is_remove_ogc_map from args))
 )
 ,dau as (
     select dt
@@ -63,7 +30,7 @@ args as (select
         from ads_cn.ads_user_flagged_i_d
         where dt between (select sdt from args) and (select edt from args)
         and flag='疑似模拟请求'
-        and 1=(select is_remove_flagged_user from args)
+        and '1'=(select is_remove_flagged_user from args)
     )
     group by 1
 )
@@ -174,4 +141,3 @@ left join ugc_game_data     t4 on t1.dt=t4.dt
 left join ugc_minicoin_data t5 on t1.dt=t5.dt
 left join ugc_ad_data       t6 on t1.dt=t6.dt
 order by 1 desc
-;

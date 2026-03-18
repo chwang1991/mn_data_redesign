@@ -1,5 +1,6 @@
 /*
 # 表名
+dim_cn.dim_special_map_a_d
 
 # 备注
 
